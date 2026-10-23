@@ -1,0 +1,22 @@
+# Python virtual environment
+.venv/
+
+# Python temporary files
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Extracted and transformed datasets
+data/bronze/
+data/silver/
+
+# Pipeline logs
+logs/
+
+# Local credentials and environment settings
+.env
+.env.*
+!.env.example
+
+# Local editor files
+.vscode/
