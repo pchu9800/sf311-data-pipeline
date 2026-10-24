@@ -41,8 +41,6 @@ def create_table(cursor):
             status_description TEXT,
             service_name TEXT,
             analysis_neighborhood TEXT,
-            lat DOUBLE PRECISION,
-            long DOUBLE PRECISION,
             resolution_hours DOUBLE PRECISION
         )
     """)
@@ -78,13 +76,11 @@ def load_records(cursor, records):
             status_description,
             service_name,
             analysis_neighborhood,
-            lat,
-            long,
             resolution_hours
         )
         VALUES (
-            %s, %s, %s, %s, %s,
-            %s, %s, %s, %s, %s
+            %s, %s, %s, %s,
+            %s, %s, %s, %s
         )
         ON CONFLICT (service_request_id)
         DO UPDATE SET
@@ -94,8 +90,6 @@ def load_records(cursor, records):
             status_description = EXCLUDED.status_description,
             service_name = EXCLUDED.service_name,
             analysis_neighborhood = EXCLUDED.analysis_neighborhood,
-            lat = EXCLUDED.lat,
-            long = EXCLUDED.long,
             resolution_hours = EXCLUDED.resolution_hours
         WHERE service_requests.updated_datetime IS NULL
             OR EXCLUDED.updated_datetime >= service_requests.updated_datetime
@@ -111,8 +105,6 @@ def load_records(cursor, records):
             record.get("status_description"),
             record.get("service_name"),
             record.get("analysis_neighborhood"),
-            record.get("lat"),
-            record.get("long"),
             record.get("resolution_hours")
         )
         for record in records

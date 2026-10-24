@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import logging
 
 
 # --- CONFIGURATION ---
@@ -80,15 +81,22 @@ def transform_data(df):
     for column in date_columns:
         df[column] = pd.to_datetime(df[column], errors="coerce")
 
-    # Calculate resolution time
-    df["resolution_time"] = (
-        df["closed_date"] - df["requested_datetime"]
+    # Default to missing resolution time
+    df["resolution_hours"] = float("nan")
+
+    # Identify closed requests with valid dates
+    closed_mask = (
+        (df["status_description"] == "Closed")
+        & df["closed_date"].notna()
+        & df["requested_datetime"].notna()
     )
 
-    # Convert duration into hours
-    df["resolution_hours"] = (
-        df["resolution_time"] / pd.Timedelta(hours=1)
-    )
+    # Calculate resolution hours for closed requests
+    df.loc[closed_mask, "resolution_hours"] = (
+        (df.loc[closed_mask, "closed_date"]
+        - df.loc[closed_mask, "requested_datetime"])
+        / pd.Timedelta(hours=1)
+)
 
     return df
 
@@ -113,6 +121,18 @@ def validate_transformed_data(df):
     # Resolution time cannot be negative
     if (df["resolution_hours"] < 0).any():
         raise ValueError("Negative resolution times found")
+
+    # Flag open requests with a closing date
+    invalid_open = (
+        (df["status_description"] == "Open")
+        & df["closed_date"].notna()
+    )
+
+    if invalid_open.any():
+        logging.warning(
+            "%s Open requests have a closing date",
+            invalid_open.sum()
+    )
 
 
 # --- 5. SAVE CLEAN DATA ---

@@ -132,3 +132,19 @@ def test_missing_closed_date():
     validate_transformed_data(result)
 
     assert pd.isna(result["resolution_hours"].iloc[0])
+
+
+# --- TEST 8: OPEN REQUEST WITH CLOSING DATE ---
+
+def test_open_request_resolution():
+
+    df = sample_data()
+
+    # Request has a closing date but status is Open
+    df["status_description"] = "Open"
+
+    result = transform_data(df)
+    validate_transformed_data(result)
+
+    # Resolution hours must remain null
+    assert pd.isna(result["resolution_hours"].iloc[0])
